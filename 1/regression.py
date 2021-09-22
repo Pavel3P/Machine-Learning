@@ -22,10 +22,16 @@ class LinearRegression:
     def MSE(self, X: np.ndarray, Y: np.ndarray) -> float:
         X = np.asarray(X)
         return np.square(
-            np.concatenate((np.ones((X.shape[0], 1)), X), axis=1) @ self.w - Y
+            self.predict(X) - Y
         ).mean()
 
     def __error(self, w: np.ndarray, X: np.ndarray, Y: np.ndarray) -> float:
         return np.mean(np.square(X @ w - Y)) \
                + self.l1 * np.sum(np.abs(w)) \
                + self.l2 * np.sum(np.square(w))
+    
+    def score(self, X: np.ndarray, Y: np.ndarray) -> float:
+        ss_res = np.sum((self.predict(X) - Y) ** 2)
+        ss_tot = np.sum((Y - np.mean(Y)) ** 2)
+        
+        return 1 - ss_res / ss_tot
