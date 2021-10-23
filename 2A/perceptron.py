@@ -10,19 +10,23 @@ class Perceptron:
 
     def __init__(self
                  ) -> None:
-        self.w: np.ndarray = None
-        self.b: float = 0
+        pass
 
     def train(self,
               X: np.ndarray,
-              Y: np.ndarray
+              Y: np.ndarray,
+              min_accuracy: float = .9
               ) -> None:
+        # Random initialization
         self.w = np.random.rand(X.shape[1])
-        for x, y in zip(X, Y):
-            error = y - self.predict(x)
-            if error != 0:
-                self.w = self.w + error * x
-                self.b += error
+        self.b = np.random.rand()
+
+        while np.mean(self.predict(X) == Y) < min_accuracy:
+            for x, y in zip(X, Y):
+                error = y - self.predict(x)
+                if error != 0:
+                    self.w = self.w + error * x
+                    self.b += error
 
     def predict(self,
                 X: np.ndarray
