@@ -11,3 +11,9 @@ def sigmoid_derivative(
         x: float
 ) -> float:
     return sigmoid(x) * (1 - sigmoid(x))
+
+
+def relu(
+        x: float
+) -> float:
+    return max([0, x])
