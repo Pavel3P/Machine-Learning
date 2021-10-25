@@ -4,14 +4,15 @@ from misc.activation_functions import relu
 
 
 class SVM:
-    l: float
     w: np.ndarray
     w0: float
 
     def __init__(self,
-                 l: float = 1.0
+                 l: float = 1.0,
+                 kernel: callable = lambda x, w: x @ w
                  ) -> None:
-        self.l = l
+        self.l: float = l
+        self.kernel: callable = kernel
 
     def train(self,
               X: np.ndarray,
@@ -19,7 +20,7 @@ class SVM:
               ) -> None:
         params: np.ndarray = minimize(
             lambda W: np.mean(
-                np.vectorize(relu)(1 - Y * (X @ W[:-1] + W[-1]))
+                np.vectorize(relu)(1 - Y * (self.kernel(X, W[:-1]) + W[-1]))
             ) + np.linalg.norm(W) ** 2 * self.l / 2,
             x0=np.random.rand(X.shape[1] + 1)
         ).x
@@ -29,4 +30,4 @@ class SVM:
     def predict(self,
                 X: np.ndarray
                 ) -> np.ndarray:
-        return np.sign(X @ self.w + self.w0)
+        return np.sign(self.kernel(X, self.w) + self.w0)
