@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.optimize import minimize
 from node import Node
+from typing import Union
 
 
 class DecisionTree:
@@ -28,14 +29,18 @@ class DecisionTree:
     def _gini(self,
               Y: np.ndarray
               ) -> float:
+        if len(Y) == 0:
+            return 1
+
         frequencies: np.ndarray = self._calc_samples_per_class(Y) / len(Y)
 
         return 1 - np.sum(frequencies ** 2)
 
     def _split_data(self,
                     X: np.ndarray,
-                    Y: np.ndarray
-                    ) -> tuple[int, float]:
+                    Y: np.ndarray,
+                    used_features: list[int] = []
+                    ) -> Union[tuple[int, float], None]:
 
         weighted_gini: list[float] = []
         thresholds: list[float] = []
@@ -47,13 +52,15 @@ class DecisionTree:
             weighted_gini.append(minimization.fun)
             thresholds.append(minimization.x)
 
-        best_feature = np.argmin(weighted_gini)
-        return best_feature, thresholds[best_feature]
+        for feature in np.argsort(weighted_gini):
+            if feature not in used_features:
+                return feature, thresholds[feature]
 
     def _grow_tree(self,
                    X: np.ndarray,
                    Y: np.ndarray,
-                   depth: int = 0
+                   depth: int = 0,
+                   used_features: list[int] = []
                    ) -> Node:
         num_samples_per_class: np.ndarray = self._calc_samples_per_class(Y)
         node = Node(
@@ -62,14 +69,19 @@ class DecisionTree:
         )
 
         if depth < self.max_depth:
-            feature_index, threshold = self._split_data(X, Y)
-            node.feature_index = feature_index
-            node.threshold = threshold
+            split = self._split_data(X, Y, used_features)
+            if split is not None:
+                feature_index, threshold = split
+                used_features.append(feature_index)
+                node.feature_index = feature_index
+                node.threshold = threshold
 
-            left_indices: np.ndarray = X[:, feature_index] <= threshold
+                left_indices: np.ndarray = X[:, feature_index] <= threshold
 
-            node.left = self._grow_tree(X[left_indices], Y[left_indices], depth+1)
-            node.right = self._grow_tree(X[~left_indices], Y[~left_indices], depth+1)
+                if np.sum(left_indices) > 0:
+                    node.left = self._grow_tree(X[left_indices], Y[left_indices], depth+1, used_features.copy())
+                if np.sum(~left_indices) > 0:
+                    node.right = self._grow_tree(X[~left_indices], Y[~left_indices], depth+1, used_features.copy())
 
         return node
 
