@@ -8,9 +8,8 @@ class Perceptron:
     for binary classification.
     """
 
-    def __init__(self
-                 ) -> None:
-        pass
+    def __init__(self, l_rate: float = 1) -> None:
+        self.l_rate = l_rate
 
     def train(self,
               X: np.ndarray,
@@ -25,7 +24,7 @@ class Perceptron:
             for x, y in zip(X, Y):
                 error = y - self.predict(x)
                 if error != 0:
-                    self.w = self.w + error * x
+                    self.w = self.w + error * self.l_rate * x
                     self.b += error
 
     def predict(self,
